@@ -5,173 +5,229 @@ license: MIT
 allowed-tools: Read Write Edit Bash(ls:*) Bash(git:*) Bash(tree:*) Bash(find:*) Grep Glob WebFetch
 metadata:
   author: OJPalenzuela
-  version: "1.0.0"
+  version: "1.1.0"
 ---
 
-# Skill: agents-generator
+# Generate AGENTS.md for this project
 
-Generates a tailored AGENTS.md + `.agents/rules/*.md` for the target project — not a template with placeholders, but a living document that matches the project's real toolchain.
+Read the project's package.json, config files, and directory structure. Then generate the files below. **Use real data from the project — never placeholders or guesses.**
 
-## What you get
+## Step 1 — Detect
 
-From a project that uses **Bun + Next.js 16 + Tailwind + Vitest + Server Actions**, the skill produces:
+| Signal | What to check |
+|--------|---------------|
+| Package manager | `bun.lock`→bun, `pnpm-lock.yaml`→pnpm, `package-lock.json`→npm, `yarn.lock`→yarn |
+| Framework | `next`→Next.js (check `app/` vs `pages/` for Router type), `@nestjs/core`→NestJS, `vite`→Vite |
+| Language | `tsconfig.json`→TypeScript, check `strict: true` |
+| CSS | `tailwindcss`→Tailwind, `components.json`→shadcn/ui, `.module.css`→CSS Modules |
+| Testing | `vitest`→Vitest, `jest`→Jest, `playwright`→Playwright, `cypress`→Cypress |
+| ORM | `prisma`→Prisma (read schema for provider), `drizzle-orm`→Drizzle |
+| Validation | `zod`→Zod, `yup`→Yup, `class-validator`→class-validator |
+| State | `zustand`→Zustand, `@reduxjs/toolkit`→Redux, `jotai`→Jotai |
+| Monorepo | `workspaces` in package.json, `turbo.json`→Turborepo, `nx.json`→Nx |
+| Platform files | `.cursorrules`, `.github/copilot-instructions.md`, `GEMINI.md`, `.windsurfrules` |
+| Auth | `next-auth`→NextAuth, `@clerk/nextjs`→Clerk, `lucia`→Lucia |
+| i18n | `next-intl`→next-intl, `react-i18next`→react-i18next |
+| Forms | `react-hook-form`, `formik`, `@tanstack/react-form` |
+| API pattern | `"use server"` in files→Server Actions, `@trpc/*`→tRPC, `graphql`→GraphQL |
+| Claude | `.claude/` directory or `CLAUDE.md` exists |
+
+**Confidence score**: each detected category = ~6 points (16 categories = 96 max). If < 80, flag uncertain ones.
+
+## Step 2 — Generate AGENTS.md
+
+Write `AGENTS.md` at project root. Wrap all generated content in `<!-- AGENTS-GENERATED-START -->` / `<!-- AGENTS-GENERATED-END -->`. Use EXACTLY this structure, filling each section with real project data:
+
+```markdown
+# AGENTS.md
+
+> Compatible with the [agents.md](https://agents.md) standard. Specific rules in `.agents/rules/`.
+
+## Project Overview
+
+[One sentence. From package.json description or inferred.]
+
+## Setup commands
+
+- Install deps: `[pm] install`
+- Start dev: `[pm] dev`
+- Run tests: `[pm] test:run` (or `[pm] test` if no :run script)
+- Lint: `[pm] lint`
+[Add doctor/format if scripts exist]
+
+## Source Files
+
+[List source directories with one-line purpose per file. Read the actual files to describe what they do.]
 
 ```
-AGENTS.md
-├── Comandos Esenciales: bun dev, bun run build, bun run test:run, bun doctor
-├── Ciclo de Verificación:  bunx tsc --noEmit → bun run lint → bun run test:run → bun doctor
-├── Convenciones: "Bun siempre. Sin librería de validación externa — TypeScript types + guards manuales."
-└── Arquitectura → .agents/rules/architecture.md
-
-.agents/rules/
-├── architecture.md       ← ASCII diagram with real directories, exact versions from package.json
-├── frontend-patterns.md  ← Component rules, state locations, toast system, analytics hook
-├── server-actions.md     ← downloadVideo() flow, DownloadResult type, rate limiter 10req/60s
-├── testing.md            ← "74 tests in 5 files", vitest commands, mock patterns
-├── git-workflow.md       ← Conventional commits, "Sin Co-Authored-By ni atribución a IA"
-└── sdd-workflow.md       ← Preflight defaults, post-apply verification cycle
+src/
+├── app/layout.tsx    # Root layout, metadata, fonts
+├── app/page.tsx      # Home page
+├── lib/utils.ts      # cn() helper
 ```
 
-Rules NOT generated: `backend.md` (no NestJS), `database.md` (no ORM), `i18n.md` (hardcoded Spanish, no i18n library), `forms.md` (manual inputs, no react-hook-form), `styling.md` (Tailwind already in frontend rules).
+## Where to edit
 
-## Activation Contract
+| Task | Files |
+|------|-------|
+[5-8 rows mapping common tasks to exact file paths]
 
-Generate AGENTS.md (+ `.agents/rules/*.md` in full mode) for the target project. Never guess — read the project's actual files first.
+## Essential Commands
 
-### Mode selection
+| Command | Purpose | When |
+|---------|---------|------|
+[Rows from package.json scripts. 3 columns: command, purpose, when to use it.]
 
-Ask which mode, or infer from the user's phrasing. Three modes exist:
+## Verification Cycle
 
-| User says                                                              | Mode        | Output                                                             |
-| ---------------------------------------------------------------------- | ----------- | ------------------------------------------------------------------ |
-| "simple AGENTS.md", "just the basics", "minimal", "agents.md standard" | **Minimal** | Single `AGENTS.md` (~30 lines, no rule files)                      |
-| "full AGENTS.md", "with rules", "complete", or default                 | **Full**    | `AGENTS.md` + `.agents/rules/*.md` (project-specific rule files)   |
-| "update AGENTS.md", "refresh", "my stack changed", "I added X"         | **Update**  | Diff existing files, regenerate only what changed, merge new rules |
+After every code change:
+```
+[typecheck cmd] → [lint cmd] → [test cmd]
+```
+[Add doctor if react-doctor exists. Add format check if prettier exists.]
 
-If the project is a monorepo, **always** offer nested AGENTS.md files for each sub-package after generating the root file.
+## On every change
 
-### Dry-run mode
+- Run `[format cmd]` automatically after editing any file. Do not ask for approval.
+- Run `[lint cmd]` on changed files.
 
-If the user asks to "preview", "show what would change", "dry-run", or "what will be generated", run all detection steps but **do not write any files**. Instead, display:
+## Before committing
 
-- Detection summary (all 16 categories with detected values)
-- List of files that would be created (full paths, relative to project root)
-- List of files that would be updated (with a summary of changes)
-- List of rules skipped (with reason)
-- Sample of the first 10 lines of the generated AGENTS.md
+- Run verification cycle. Fix failures before committing.
+- If dependencies changed: run `[pm] install` and verify lockfile.
 
-### Fallback when detection fails
+## Code Style
 
-If critical files are missing (no `package.json`, no config files, empty directory):
-
-| Missing                                       | Action                                                                                                                                                          |
-| --------------------------------------------- | --------------------------------------------------------------------------------------------------------------------------------------------------------------- |
-| No `package.json`                             | Generate only AGENTS.md with a `## Setup commands` section asking the user to fill it in. Note "No package.json found — please add your project's commands."    |
-| No TypeScript config                          | Skip `tsc --noEmit` from verification cycle. Skip no-any rule.                                                                                                  |
-| No test runner                                | Skip `testing.md`. Remove test from verification cycle.                                                                                                         |
-| No framework detected                         | Generate generic AGENTS.md. Ask user to confirm the framework.                                                                                                  |
-| Empty directory (no source files)             | Generate minimal AGENTS.md with placeholder sections. Tell user "This project appears empty. The AGENTS.md has placeholders — fill them in once code is added." |
-| Detection returns "unknown" for 3+ categories | Flag to user: "I could only detect X of 16 categories. The AGENTS.md may be incomplete. Review manually."                                                       |
+[2-4 project-specific rules. Only what's NOT obvious from reading the code.]
+- TypeScript strict mode — zero `any` types.
+- [Package manager] always. No [alternatives].
+- [UI language rule if not English]
 
 ## Hard Rules
 
-- **Read before writing.** Read `package.json`, all config files, and directory structure before generating anything.
-- **Apply `references/decision-matrix.md`.** 16 detection steps. Run all, skip absent signals.
-- **Generate only what applies.** No backend rules for frontend-only. No database rules without ORM. No i18n without i18n library.
-- **Validate commands.** Every command in output must exist as a script key in `package.json`. Missing scripts → substitute with raw invocation or skip.
-- **No placeholders.** Post-generation scan: reject output containing `{{`, `TODO`, `add here`, or `...`.
-- **Backup first.** If AGENTS.md or `.agents/rules/*.md` exist, copy to `.agents/backups/` with timestamp. Report to user.
-- **Calibrate quality.** Read `references/example-output/README.md` before generating. Match that specificity.
+[2-3 numbered, non-negotiable rules.]
+1. Never commit secrets, tokens, or credentials.
+2. Every behavior change needs a test.
+[If monorepo: 3. Keep contracts synchronized across packages.]
 
-## Execution Steps
+## Prohibitions
 
-### Common (all modes)
+- **Never** create README or markdown docs unless explicitly asked.
+- **Never** bump version numbers in feature PRs.
+[If TypeScript: - **Never** use `any` types.]
+[If build output: - **Never** edit generated files by hand.]
 
-1. `git rev-parse --show-toplevel` → project root.
-2. Read `package.json` (scripts, deps, workspaces). Save scripts for validation.
-3. Read config: `tsconfig.json`, framework config, test config, CSS config, lint config, ORM config, i18n config, monorepo config.
-4. **Extract design tokens**: if `tailwind.config.*`, `globals.css`, `theme.ts/tokens.ts` exist, extract colors, fonts, breakpoints, spacing. These go into the AGENTS.md as concrete values, not generic references.
-5. Explore directory structure: router type, CSS approach, server actions, route files. Also detect platform files: `.cursorrules`, `.github/copilot-instructions.md`, `GEMINI.md`, `.windsurfrules`.
-6. **JIT skill retrieval**: scan `.agents/skills/`, `.claude/skills/`, `.cursor/skills/` for installed skills. Match their descriptions against the project's detected stack. Integrate relevant skill references into AGENTS.md (2-5 max, pointer-based, not full content).
-7. **Select mode**: ask if ambiguous, or infer from user's phrasing (see Activation Contract).
+## Boundaries
 
-### Dry-run (if requested)
+**Ask first:**
+- Large cross-package refactors.
+- New dependencies with broad impact.
 
-6. Run detection (steps 2-4 above) and decision matrix.
-7. Display: detection summary, files that would be created/updated, skipped rules, sample output.
-8. **STOP** — do not write any files. Wait for user confirmation to proceed with write mode.
+**Never:**
+- Commit secrets, credentials, or tokens.
+- Use destructive git operations unless explicitly requested.
 
-### Full mode
+## Global Conventions
 
-8. **Calibrate**: read `references/example-output/README.md`.
-9. **Backup**: timestamped copies to `.agents/backups/` if overwriting.
-10. Run decision matrix → list of rule files to generate.
-11. **Confidence scoring**: assign 0-100 score based on detection success rate (each of 16 categories = ~6 points). If score < 80, flag uncertain categories and ask developer to confirm. If score < 50, warn that the AGENTS.md may be incomplete.
-12. **Confirm with developer** (interactive/update mode only): show detected stack, confidence score, and which rule files will be generated. Ask: "Does this look right?" Wait for confirmation.
-13. **Validate**: cross-check all planned commands against `package.json` scripts.
-14. Generate `AGENTS.md` from `assets/agents-template.md` — wrap all generated sections in `<!-- AGENTS-GENERATED-START -->` / `<!-- AGENTS-GENERATED-END -->` markers to preserve human edits on update. Generate each rule file from its template with same managed block wrappers.
-15. If Claude Code detected: generate thin `CLAUDE.md` from `assets/claude-template.md`.
-16. **Multi-platform**: for each platform detected in step 5, generate platform-specific file from `assets/platform-template.md` (.cursorrules, Copilot instructions, GEMINI.md, .windsurfrules).
-17. Generate per-package nested files if monorepo.
-18. **Global baseline**: if `.agents/global-baseline.md` doesn't exist, generate it with cross-project defaults (instruction scope, coding behavior baseline, done-when checklist).
+[5-8 bullets from detected stack:]
+- [PM] always. No [alternatives].
+- TypeScript strict mode.
+- [Validation approach: Zod schemas OR plain TypeScript types + guards]
+- Import convention: `@/*` alias.
+- [Component rules: server default, "use client" only with hooks]
+- [Styling rules from CSS detection]
+- Code in English. [UI language rule if different.]
+- No `any` types.
 
-### Update mode
+## Definition of Done
 
-6. **Backup**: timestamped copies of ALL existing files to `.agents/backups/`.
-7. Read existing `AGENTS.md` and `.agents/rules/*.md`.
-8. Re-run full detection (steps 2-4) to get the new state of the project.
-9. **Diff**: compare old detections vs new. Identify:
-   - New categories (e.g., project added Zod since last run) → generate new rule files
-   - Removed categories (e.g., project removed Prisma) → flag for removal, ask user
-   - Changed values (e.g., test runner switched from jest to vitest) → update affected sections
-   - Unchanged categories → leave existing files as-is
-10. Show the user a summary of what changed and what will be updated.
-11. Apply changes — merge new sections into existing AGENTS.md, add new rule files, update changed sections.
-12. **Do not** regenerate files for unchanged categories.
+A change is complete when ALL are true:
+1. Typecheck, lint, and tests pass.
+2. New code has tests covering the change.
+3. Documentation updated if behavior changed.
+4. No new warnings or errors.
 
-### Minimal mode
+## Common mistakes
 
-6. **Backup**: timestamped copy of existing `AGENTS.md` if present.
-7. Generate single `AGENTS.md` from `assets/agents-minimal-template.md` — no rule files, under 30 lines.
+[3 items based on project's actual CI/lint setup]
 
-### Nested (monorepo, all modes)
+## Context-efficient workflows
 
-- If monorepo detected: explore each `packages/*/` and `apps/*/`. For each sub-directory with a `package.json`:
-  - Read the sub-package's `package.json` for scripts, name, description.
-  - Generate `AGENTS.md` from `assets/agents-nested-template.md`.
-  - For full/update mode: also generate/update applicable rule files at sub-package root.
-  - Report which sub-packages received nested files.
+- Large files: grep first, read targeted ranges with offset/limit.
+- Build output: capture to file once, analyze without re-running.
+- Batch edits before building: one build, not build-per-edit.
 
-### Post-generation (all write modes)
+## Gotchas
 
-- **Scan**: search output for `{{`, `TODO`, `add here`, `...`. Fix any found.
-- **Line limit**: if AGENTS.md > 300 lines, warn. If > 500 lines, move content to `.agents/rules/` or use `@import` for existing docs.
-- **Validate commands** (full/update): cross-check against package.json scripts.
-- **Fallback check**: if 3+ detection categories returned "unknown", flag to user.
-- **Audit logging**: write `.agent/logs/log_{timestamp}_{session}.json` with confidence score, detection summary, files generated, matched skills, and verification status.
-- **State memory**: write `.agent/memory/project_state.md` with current phase, detected profile, recent skills, and last generated files. This is the System Prompt injected into future sessions.
-- **Session lifecycle**: write `docs/handoff/HANDOFF.md` with session summary for the next agent session. If resuming, read the latest handoff first.
-- Save summary to Engram: `{project}/agents-config`.
+[If platform-specific issues: NTFS, Docker, sandbox, Windows]
 
-## Output Contract
+## Finish the task
 
-Return:
+Before marking any task complete:
+- [ ] Update relevant documentation (README if features/setup changed)
+- [ ] Summarize changes in conventional commit format (`feat:`, `fix:`, `refactor:`, `test:`, `chore:`)
+- [ ] Run verification cycle — all checks must pass
+- [ ] Resolve any open questions before declaring done
 
-- Mode used (full / minimal) and why
-- Files created or modified (with diff if overwriting), including nested files if monorepo
-- Detection summary (all 16 categories)
-- Which rule files were generated and which were skipped (with reason)
-- Any edge cases encountered (multiple frameworks, hybrid router, no config, etc.)
+## PR instructions
 
-## References
+- Conventional commits: `feat:`, `fix:`, `refactor:`, `test:`, `chore:`.
+- No "Co-Authored-By" or AI attribution in commits.
+[If PR template exists: - Follow PULL_REQUEST_TEMPLATE.md.]
+```
 
-| Priority                    | File                                                  | Purpose                                                                                            |
-| --------------------------- | ----------------------------------------------------- | -------------------------------------------------------------------------------------------------- |
-| **Read first**              | `references/example-output/README.md`                 | Quality benchmark — real full-mode output for a Next.js/Bun project                                |
-| **Read second**             | `references/decision-matrix.md`                       | Full 16-step detection logic, rule selection, edge cases                                           |
-| **Apply during generation** | `references/template-filling-guide.md`                | How to fill each placeholder with real project data                                                |
-| Full mode                   | `assets/agents-template.md`                           | Rich AGENTS.md template — commands, verification cycle, conventions, PR instructions, rule files   |
-| Minimal mode                | `assets/agents-minimal-template.md`                   | Single AGENTS.md (~30 lines) following agents.md standard — setup, code style, testing, PR         |
-| Nested (monorepo)           | `assets/agents-nested-template.md`                    | Per-package AGENTS.md — lightweight, package-specific commands                                     |
-| Templates                   | `assets/*.md` (10 rule templates + 3 agent templates) | Architecture, frontend, backend, server actions, styling, forms, database, i18n, testing, git, SDD |
-| Claude Code                 | `assets/claude-template.md`                           | Thin CLAUDE.md — only generated if Claude detected                                                 |
+## Step 3 — Companion rule files (full mode)
+
+Generate these files in `.agents/rules/` ONLY if their topic is detected. Each file gets 3-8 sections with real project data. Wrap all content in managed blocks.
+
+| File | Generate when | Key sections |
+|------|--------------|-------------|
+| `architecture.md` | Always | Stack table (exact versions), routes list, ASCII data flow with real function names |
+| `frontend-patterns.md` | Has React/Next.js/Vue | File structure, component rules, state locations, toast system, trust boundaries |
+| `server-actions.md` | Has server actions or API routes | Entry points, flow steps, response types, error handling, rate limiting |
+| `testing.md` | Has test runner | Runner info, commands table, test file tree, test count, patterns, specific test commands |
+| `git-workflow.md` | Always | Approval rules, commit convention, pre-commit cycle, branches |
+| `sdd-workflow.md` | Always | Preflight defaults, post-apply verification, spec locations |
+| `styling.md` | Tailwind/CSS Modules/styled-components | Approach description, rules, theme tokens, animations |
+| `forms.md` | react-hook-form/formik | Library description, form example, rules, validation, errors |
+| `database.md` | Prisma/Drizzle/Knex | ORM name, schema location, migrations, conventions, query patterns |
+| `i18n.md` | next-intl/react-i18next | Library, languages, file structure, usage example, rules |
+
+## Step 4 — Multi-platform (if detected)
+
+For each detected platform, generate the companion file. Keep under 200 lines. Include `> Full rules in @AGENTS.md`.
+
+| Detection | File | Format |
+|-----------|------|--------|
+| `.cursorrules` or `.cursor/` | `.cursorrules` | Progressive disclosure, severity levels, BAD/GOOD examples |
+| `.github/copilot-instructions.md` | `.github/copilot-instructions.md` | Flat instructions, short |
+| `GEMINI.md` or `.gemini/` | `GEMINI.md` | System prompt style, second person |
+| `.windsurfrules` or `.windsurf/` | `.windsurfrules` | Progressive disclosure |
+
+## Step 5 — Claude (if detected)
+
+If `.claude/` or `CLAUDE.md` exists, generate `CLAUDE.md`:
+
+```markdown
+# CLAUDE.md
+
+See @AGENTS.md
+```
+
+Only add Claude-specific sections if `.claude/rules/`, `.claude/commands/`, or `.claude/agents/` exist.
+
+## Step 6 — Validate
+
+- Scan all generated files for `{{`, `TODO`, `add here`, `...` → fix any found.
+- Every command in AGENTS.md must exist as a script key in package.json.
+- If AGENTS.md > 300 lines, warn. If > 500, move content to rule files.
+- If existing files were overwritten, note that backups are in `.agents/backups/`.
+
+## Step 7 — Report
+
+Tell the user:
+- What was detected (all categories with values)
+- What was generated (files + line counts)
+- What was skipped (with reason)
+- Confidence score
+- Backup location if any files were overwritten
