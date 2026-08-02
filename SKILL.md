@@ -5,225 +5,126 @@ license: MIT
 allowed-tools: Read Write Edit Bash(ls:*) Bash(git:*) Bash(tree:*) Bash(find:*) Grep Glob WebFetch
 metadata:
   author: OJPalenzuela
-  version: "1.1.2"
+  version: "1.2.0"
 ---
 
-# Generate AGENTS.md for this project
+# Skill: agents-generator
 
-Read the project's package.json, config files, and directory structure. Then generate the files below. **Use real data from the project — never placeholders or guesses.**
+Generates a tailored AGENTS.md + `.agents/rules/*.md` for the target project — not a template with placeholders, but a living document that matches the project's real toolchain.
 
-## Step 1 — Detect the project
+## What you get
 
-### CRITICAL — Detect package manager FIRST
-
-Check for lockfiles in the project root. This determines ALL commands in the output:
+From a project that uses **Bun + Next.js 16 + Tailwind + Vitest + Server Actions**, the skill produces:
 
 ```
-bun.lock or bun.lockb  → bun   → commands: bun install, bun dev, bun run lint
-pnpm-lock.yaml         → pnpm  → commands: pnpm install, pnpm dev, pnpm lint
-package-lock.json      → npm   → commands: npm install, npm run dev, npm run lint
-yarn.lock              → yarn  → commands: yarn install, yarn dev, yarn lint
+AGENTS.md
+├── Setup commands: bun install, bun dev, bun run test:run, bun doctor
+├── Verification Cycle: bunx tsc --noEmit → bun run lint → bun run test:run → bun doctor
+├── Conventions: "Bun always. Plain TypeScript types + guards."
+└── Architecture → .agents/rules/architecture.md
+
+.agents/rules/
+├── architecture.md       ← ASCII diagram with real directories, exact versions
+├── frontend-patterns.md  ← Component rules, state locations, trust boundaries
+├── server-actions.md     ← downloadVideo() flow, DownloadResult type, rate limiter
+├── testing.md            ← "74 tests in 5 files", vitest commands, mock patterns
+├── git-workflow.md       ← Conventional commits, pre-commit checks
+└── sdd-workflow.md       ← Preflight defaults, post-apply verification
 ```
 
-**NEVER default to npm.** If no lockfile exists, check the `packageManager` field in `package.json`. If that's also absent, ask the user.
+Rules NOT generated: `backend.md` (no NestJS), `database.md` (no ORM), `i18n.md` (hardcoded Spanish), `forms.md` (manual inputs), `styling.md` (Tailwind in frontend rules).
 
-### Then detect everything else
-| Framework | `next`→Next.js (check `app/` vs `pages/` for Router type), `@nestjs/core`→NestJS, `vite`→Vite |
-| Language | `tsconfig.json`→TypeScript, check `strict: true` |
-| CSS | `tailwindcss`→Tailwind, `components.json`→shadcn/ui, `.module.css`→CSS Modules |
-| Testing | `vitest`→Vitest, `jest`→Jest, `playwright`→Playwright, `cypress`→Cypress |
-| ORM | `prisma`→Prisma (read schema for provider), `drizzle-orm`→Drizzle |
-| Validation | `zod`→Zod, `yup`→Yup, `class-validator`→class-validator |
-| State | `zustand`→Zustand, `@reduxjs/toolkit`→Redux, `jotai`→Jotai |
-| Monorepo | `workspaces` in package.json, `turbo.json`→Turborepo, `nx.json`→Nx |
-| Platform files | `.cursorrules`, `.github/copilot-instructions.md`, `GEMINI.md`, `.windsurfrules` |
-| Auth | `next-auth`→NextAuth, `@clerk/nextjs`→Clerk, `lucia`→Lucia |
-| i18n | `next-intl`→next-intl, `react-i18next`→react-i18next |
-| Forms | `react-hook-form`, `formik`, `@tanstack/react-form` |
-| API pattern | `"use server"` in files→Server Actions, `@trpc/*`→tRPC, `graphql`→GraphQL |
-| Claude | `.claude/` directory or `CLAUDE.md` exists |
+## Activation Contract
 
-**Confidence score**: each detected category = ~6 points (16 categories = 96 max). If < 80, flag uncertain ones.
+Generate AGENTS.md + `.agents/rules/*.md` for the target project. Never guess — read the project's actual files first.
 
-## Step 2 — Generate AGENTS.md
+### Mode selection
 
-Write `AGENTS.md` at project root. Wrap all generated content in `<!-- AGENTS-GENERATED-START -->` / `<!-- AGENTS-GENERATED-END -->`. Use EXACTLY this structure, filling each section with real project data:
+| User says | Mode | Output |
+|-----------|------|--------|
+| "simple AGENTS.md", "just the basics", "minimal" | **Minimal** | Single `AGENTS.md` (~30 lines, no rule files) |
+| "full AGENTS.md", "with rules", "complete", or default | **Full** | `AGENTS.md` + `.agents/rules/*.md` |
+| "update AGENTS.md", "refresh", "my stack changed" | **Update** | Diff existing, regenerate only what changed |
 
-```markdown
-# AGENTS.md
+### Dry-run mode
 
-> Compatible with the [agents.md](https://agents.md) standard. Specific rules in `.agents/rules/`.
-
-## Project Overview
-
-[One sentence. From package.json description or inferred.]
-
-## Setup commands
-
-- Install deps: `[pm] install`
-- Start dev: `[pm] dev`
-- Run tests: `[pm] test:run` (or `[pm] test` if no :run script)
-- Lint: `[pm] lint`
-[Add doctor/format if scripts exist]
-
-## Source Files
-
-[List source directories with one-line purpose per file. Read the actual files to describe what they do.]
-
-```
-src/
-├── app/layout.tsx    # Root layout, metadata, fonts
-├── app/page.tsx      # Home page
-├── lib/utils.ts      # cn() helper
-```
-
-## Where to edit
-
-| Task | Files |
-|------|-------|
-[5-8 rows mapping common tasks to exact file paths]
-
-## Essential Commands
-
-| Command | Purpose | When |
-|---------|---------|------|
-[Rows from package.json scripts. 3 columns: command, purpose, when to use it.]
-
-## Verification Cycle
-
-After every code change. Run in this order (lint FIRST, then typecheck, then build/test):
-```
-[lint cmd] → [typecheck cmd] → [build cmd] → [test cmd]
-```
-[Add doctor if react-doctor exists.]
-
-## Before committing
-
-- Run verification cycle. Fix failures before committing.
-- If dependencies changed: run `[pm] install` and verify lockfile.
-
-## Code Style
-
-[2-4 project-specific rules. Only what's NOT obvious from reading the code.]
-- TypeScript strict mode — zero `any` types.
-- [Package manager] always. No [alternatives].
-- [UI language rule if not English]
+If the user asks to "preview", "show what would change", "dry-run": run all detection but do NOT write files. Show detection summary, files that would be created, skipped rules, and sample output.
 
 ## Hard Rules
 
-[2-3 numbered, non-negotiable rules.]
-1. Never commit secrets, tokens, or credentials.
-2. Every behavior change needs a test.
-[If monorepo: 3. Keep contracts synchronized across packages.]
+- **Read before writing.** Read `package.json`, all config files, and directory structure before generating anything.
+- **Detect package manager FIRST.** Check lockfiles: `bun.lock`→bun, `pnpm-lock.yaml`→pnpm, `package-lock.json`→npm, `yarn.lock`→yarn. NEVER default to npm. Every command uses the detected PM.
+- **Generate only what applies.** No backend rules for frontend-only. No database rules without ORM.
+- **Validate commands.** Every command in output must exist as a script key in `package.json`.
+- **No placeholders.** Scan output for `{{`, `TODO`, `add here`, `...`. Reject if any remain.
+- **Backup first.** If files exist, copy to `.agents/backups/` with timestamp.
 
-## Prohibitions
+## Execution Steps
 
-- **Never** create README or markdown docs unless explicitly asked.
-- **Never** bump version numbers in feature PRs.
-[If TypeScript: - **Never** use `any` types.]
-[If build output: - **Never** edit generated files by hand.]
+### Common
 
-## Boundaries
+1. `git rev-parse --show-toplevel` → project root.
+2. **Detect package manager FIRST**: check lockfiles. `bun.lock`→bun, `pnpm-lock.yaml`→pnpm, `package-lock.json`→npm, `yarn.lock`→yarn. Never default to npm.
+3. Read `package.json` (scripts, deps, workspaces). Save scripts for validation.
+4. Read config files and explore directory structure.
+5. Select mode (ask if ambiguous).
 
-**Ask first:**
-- Large cross-package refactors.
-- New dependencies with broad impact.
+### Full mode
 
-**Never:**
-- Commit secrets, credentials, or tokens.
-- Use destructive git operations unless explicitly requested.
+1. Read `assets/agents-template.md` — this is the AGENTS.md structure with all sections and filling rules.
+2. Read project files and fill every placeholder with real data. Never use generic text.
+3. Generate `AGENTS.md` at project root. Wrap content in `<!-- AGENTS-GENERATED-START -->` / `<!-- AGENTS-GENERATED-END -->`.
+4. For each applicable rule category, read the corresponding template from `assets/` and generate the rule file in `.agents/rules/`.
+5. If Claude detected (`.claude/` or `CLAUDE.md`): generate thin `CLAUDE.md` from `assets/claude-template.md`.
+6. If platform files detected: generate from `assets/platform-template.md`.
 
-## Global Conventions
+### Minimal mode
 
-[5-8 bullets from detected stack:]
-- [PM] always. No [alternatives].
-- TypeScript strict mode.
-- [Validation approach: Zod schemas OR plain TypeScript types + guards]
-- Import convention: `@/*` alias.
-- [Component rules: server default, "use client" only with hooks]
-- [Styling rules from CSS detection]
-- Code in English. [UI language rule if different.]
-- No `any` types.
+1. Read `assets/agents-minimal-template.md` — 30-line agents.md standard format.
+2. Generate single `AGENTS.md`.
 
-## Definition of Done
+### Update mode
 
-A change is complete when ALL are true:
-1. Typecheck, lint, and tests pass.
-2. New code has tests covering the change.
-3. Documentation updated if behavior changed.
-4. No new warnings or errors.
+1. Backup existing files.
+2. Re-detect project state.
+3. Diff old vs new. Regenerate only changed categories.
 
-## Gotchas
+### Post-generation
 
-[If platform-specific issues: NTFS, Docker, sandbox, Windows]
-
-## PR instructions
-
-- Conventional commits: `feat:`, `fix:`, `refactor:`, `test:`, `chore:`.
-- No "Co-Authored-By" or AI attribution in commits.
-[If PR template exists: - Follow PULL_REQUEST_TEMPLATE.md.]
-```
-
-## Step 3 — Companion rule files (full mode)
-
-**Generate these files in `.agents/rules/`.** Each file must contain project-specific content — never generic templates. Skip any file whose topic is not detected in the project.
-
-Create `.agents/rules/` directory if it doesn't exist. Then generate:
-
-| File | Generate when | Key sections |
-|------|--------------|-------------|
-| `architecture.md` | Always | Stack table (exact versions), routes list, ASCII data flow with real function names |
-| `frontend-patterns.md` | Has React/Next.js/Vue | File structure, component rules, state locations, toast system, trust boundaries |
-| `server-actions.md` | Has server actions or API routes | Entry points, flow steps, response types, error handling, rate limiting |
-| `testing.md` | Has test runner | Runner info, commands table, test file tree, test count, patterns, specific test commands |
-| `git-workflow.md` | Always | Approval rules, commit convention, pre-commit cycle, branches |
-| `sdd-workflow.md` | Always | Preflight defaults, post-apply verification, spec locations |
-| `styling.md` | Tailwind/CSS Modules/styled-components | Approach description, rules, theme tokens, animations |
-| `forms.md` | react-hook-form/formik | Library description, form example, rules, validation, errors |
-| `database.md` | Prisma/Drizzle/Knex | ORM name, schema location, migrations, conventions, query patterns |
-| `i18n.md` | next-intl/react-i18next | Library, languages, file structure, usage example, rules |
-
-## Step 4 — Multi-platform (if detected)
-
-For each detected platform, generate the companion file. Keep under 200 lines. Include `> Full rules in @AGENTS.md`.
-
-| Detection | File | Format |
-|-----------|------|--------|
-| `.cursorrules` or `.cursor/` | `.cursorrules` | Progressive disclosure, severity levels, BAD/GOOD examples |
-| `.github/copilot-instructions.md` | `.github/copilot-instructions.md` | Flat instructions, short |
-| `GEMINI.md` or `.gemini/` | `GEMINI.md` | System prompt style, second person |
-| `.windsurfrules` or `.windsurf/` | `.windsurfrules` | Progressive disclosure |
-
-## Step 5 — Claude (if detected)
-
-If `.claude/` or `CLAUDE.md` exists, generate `CLAUDE.md`:
-
-```markdown
-# CLAUDE.md
-
-See @AGENTS.md
-```
-
-Only add Claude-specific sections if `.claude/rules/`, `.claude/commands/`, or `.claude/agents/` exist.
-
-## Step 6 — Validate and enforce
-
-**Before declaring the task complete, the agent MUST:**
-
-- Scan all generated files for `{{`, `TODO`, `add here`, `...` → fix any found.
-- Every command in AGENTS.md must exist as a script key in package.json.
+- Scan for `{{`, `TODO`, `...`. Fix any found.
+- Verify all commands exist in package.json scripts.
 - If AGENTS.md > 300 lines, warn. If > 500, move content to rule files.
-- Read package.json `scripts` and detect the CORRECT package manager from lockfiles. Never default to npm.
-- Run `[format cmd]` on changed files if formatter exists.
-- Update README if features, setup steps, or developer ergonomics changed.
-- Summarize changes in conventional commit format.
-- Resolve any open questions before declaring done.
+- Report: what was detected, generated, skipped, and confidence score.
 
-## Step 7 — Report
+## Output Contract
 
-Tell the user:
-- What was detected (all categories with values)
-- What was generated (files + line counts)
-- What was skipped (with reason)
+Return:
+- Mode used and why
+- Files created/modified
+- Detection summary (all categories)
+- Rules generated and skipped (with reason)
 - Confidence score
-- Backup location if any files were overwritten
+
+## References
+
+| Priority | File | Purpose |
+|----------|------|---------|
+| **Required** | `assets/agents-template.md` | Full AGENTS.md template with all 25+ sections and filling rules |
+| **Required** | `assets/agents-minimal-template.md` | 30-line agents.md standard template |
+| Full mode | `assets/architecture-template.md` | Architecture rules template |
+| Full mode | `assets/frontend-template.md` | Frontend patterns template |
+| Full mode | `assets/server-actions-template.md` | Server actions / backend template |
+| Full mode | `assets/testing-template.md` | Testing strategy template |
+| Full mode | `assets/git-template.md` | Git workflow template |
+| Full mode | `assets/sdd-template.md` | SDD workflow template |
+| Full mode | `assets/styling-template.md` | Styling rules template |
+| Full mode | `assets/forms-template.md` | Form patterns template |
+| Full mode | `assets/database-template.md` | Database rules template |
+| Full mode | `assets/i18n-template.md` | i18n rules template |
+| Full mode | `assets/backend-template.md` | Backend/NestJS template |
+| Conditional | `assets/claude-template.md` | CLAUDE.md — only if Claude detected |
+| Conditional | `assets/platform-template.md` | Multi-platform files |
+| Conditional | `assets/agents-nested-template.md` | Monorepo nested AGENTS.md |
+| Reference | `references/decision-matrix.md` | Full detection logic and edge cases |
+| Reference | `references/example-output/README.md` | Quality benchmark |
+| Reference | `references/template-filling-guide.md` | Placeholder filling rules |
