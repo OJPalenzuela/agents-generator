@@ -5,7 +5,7 @@ license: MIT
 allowed-tools: Read Write Edit Bash(ls:*) Bash(git:*) Bash(tree:*) Bash(find:*) Grep Glob WebFetch
 metadata:
   author: OJPalenzuela
-  version: "1.2.0"
+  version: "1.2.1"
 ---
 
 # Skill: agents-generator
@@ -71,16 +71,16 @@ If the user asks to "preview", "show what would change", "dry-run": run all dete
 
 ### Full mode
 
-1. Read `assets/agents-template.md` — this is the AGENTS.md structure with all sections and filling rules.
+1. Read `assets/agents-full.md` — this is the AGENTS.md structure with all sections and filling rules.
 2. Read project files and fill every placeholder with real data. Never use generic text.
 3. Generate `AGENTS.md` at project root. Wrap content in `<!-- AGENTS-GENERATED-START -->` / `<!-- AGENTS-GENERATED-END -->`.
 4. For each applicable rule category, read the corresponding template from `assets/` and generate the rule file in `.agents/rules/`.
-5. If Claude detected (`.claude/` or `CLAUDE.md`): generate thin `CLAUDE.md` from `assets/claude-template.md`.
-6. If platform files detected: generate from `assets/platform-template.md`.
+5. If Claude detected (`.claude/` or `CLAUDE.md`): generate thin `CLAUDE.md` from `assets/claude.md`.
+6. If platform files detected: generate from `assets/platform.md`.
 
 ### Minimal mode
 
-1. Read `assets/agents-minimal-template.md` — 30-line agents.md standard format.
+1. Read `assets/agents-minimal.md` — 30-line agents.md standard format.
 2. Generate single `AGENTS.md`.
 
 ### Update mode
@@ -109,22 +109,22 @@ Return:
 
 | Priority | File | Purpose |
 |----------|------|---------|
-| **Required** | `assets/agents-template.md` | Full AGENTS.md template with all 25+ sections and filling rules |
-| **Required** | `assets/agents-minimal-template.md` | 30-line agents.md standard template |
-| Full mode | `assets/architecture-template.md` | Architecture rules template |
-| Full mode | `assets/frontend-template.md` | Frontend patterns template |
-| Full mode | `assets/server-actions-template.md` | Server actions / backend template |
-| Full mode | `assets/testing-template.md` | Testing strategy template |
-| Full mode | `assets/git-template.md` | Git workflow template |
-| Full mode | `assets/sdd-template.md` | SDD workflow template |
-| Full mode | `assets/styling-template.md` | Styling rules template |
-| Full mode | `assets/forms-template.md` | Form patterns template |
-| Full mode | `assets/database-template.md` | Database rules template |
-| Full mode | `assets/i18n-template.md` | i18n rules template |
-| Full mode | `assets/backend-template.md` | Backend/NestJS template |
-| Conditional | `assets/claude-template.md` | CLAUDE.md — only if Claude detected |
-| Conditional | `assets/platform-template.md` | Multi-platform files |
-| Conditional | `assets/agents-nested-template.md` | Monorepo nested AGENTS.md |
+| **Required** | `assets/agents-full.md` | Full AGENTS.md template with all 25+ sections and filling rules |
+| **Required** | `assets/agents-minimal.md` | 30-line agents.md standard template |
+| Full mode | `assets/architecture.md` | Architecture rules template |
+| Full mode | `assets/frontend-patterns.md` | Frontend patterns template |
+| Full mode | `assets/server-actions.md` | Server actions / backend template |
+| Full mode | `assets/testing.md` | Testing strategy template |
+| Full mode | `assets/git-workflow.md` | Git workflow template |
+| Full mode | `assets/sdd-workflow.md` | SDD workflow template |
+| Full mode | `assets/styling.md` | Styling rules template |
+| Full mode | `assets/forms.md` | Form patterns template |
+| Full mode | `assets/database.md` | Database rules template |
+| Full mode | `assets/i18n.md` | i18n rules template |
+| Full mode | `assets/backend.md` | Backend/NestJS template |
+| Conditional | `assets/claude.md` | CLAUDE.md — only if Claude detected |
+| Conditional | `assets/platform.md` | Multi-platform files |
+| Conditional | `assets/agents-nested.md` | Monorepo nested AGENTS.md |
 | Reference | `references/decision-matrix.md` | Full detection logic and edge cases |
 | Reference | `references/example-output/README.md` | Quality benchmark |
 | Reference | `references/template-filling-guide.md` | Placeholder filling rules |
