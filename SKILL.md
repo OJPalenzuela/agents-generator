@@ -5,18 +5,29 @@ license: MIT
 allowed-tools: Read Write Edit Bash(ls:*) Bash(git:*) Bash(tree:*) Bash(find:*) Grep Glob WebFetch
 metadata:
   author: OJPalenzuela
-  version: "1.1.1"
+  version: "1.1.2"
 ---
 
 # Generate AGENTS.md for this project
 
 Read the project's package.json, config files, and directory structure. Then generate the files below. **Use real data from the project — never placeholders or guesses.**
 
-## Step 1 — Detect
+## Step 1 — Detect the project
 
-| Signal | What to check |
-|--------|---------------|
-| Package manager | `bun.lock`→bun, `pnpm-lock.yaml`→pnpm, `package-lock.json`→npm, `yarn.lock`→yarn |
+### CRITICAL — Detect package manager FIRST
+
+Check for lockfiles in the project root. This determines ALL commands in the output:
+
+```
+bun.lock or bun.lockb  → bun   → commands: bun install, bun dev, bun run lint
+pnpm-lock.yaml         → pnpm  → commands: pnpm install, pnpm dev, pnpm lint
+package-lock.json      → npm   → commands: npm install, npm run dev, npm run lint
+yarn.lock              → yarn  → commands: yarn install, yarn dev, yarn lint
+```
+
+**NEVER default to npm.** If no lockfile exists, check the `packageManager` field in `package.json`. If that's also absent, ask the user.
+
+### Then detect everything else
 | Framework | `next`→Next.js (check `app/` vs `pages/` for Router type), `@nestjs/core`→NestJS, `vite`→Vite |
 | Language | `tsconfig.json`→TypeScript, check `strict: true` |
 | CSS | `tailwindcss`→Tailwind, `components.json`→shadcn/ui, `.module.css`→CSS Modules |
@@ -80,11 +91,11 @@ src/
 
 ## Verification Cycle
 
-After every code change:
+After every code change. Run in this order (lint FIRST, then typecheck, then build/test):
 ```
-[typecheck cmd] → [lint cmd] → [test cmd]
+[lint cmd] → [typecheck cmd] → [build cmd] → [test cmd]
 ```
-[Add doctor if react-doctor exists. Add format check if prettier exists.]
+[Add doctor if react-doctor exists.]
 
 ## Before committing
 
@@ -155,7 +166,9 @@ A change is complete when ALL are true:
 
 ## Step 3 — Companion rule files (full mode)
 
-Generate these files in `.agents/rules/` ONLY if their topic is detected. Each file gets 3-8 sections with real project data. Wrap all content in managed blocks.
+**Generate these files in `.agents/rules/`.** Each file must contain project-specific content — never generic templates. Skip any file whose topic is not detected in the project.
+
+Create `.agents/rules/` directory if it doesn't exist. Then generate:
 
 | File | Generate when | Key sections |
 |------|--------------|-------------|
