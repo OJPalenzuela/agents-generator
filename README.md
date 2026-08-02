@@ -7,7 +7,7 @@
 [![skills.sh](https://skills.sh/b/OJPalenzuela/agents-generator)](https://skills.sh/OJPalenzuela/agents-generator)
 [![License: MIT](https://img.shields.io/badge/License-MIT-blue.svg)](LICENSE)
 [![agents.md](https://img.shields.io/badge/agents.md-compatible-green)](https://agents.md)
-[![version](https://img.shields.io/badge/version-1.1.0-blue)](https://github.com/OJPalenzuela/agents-generator/releases)
+[![version](https://img.shields.io/badge/version-1.1.1-blue)](https://github.com/OJPalenzuela/agents-generator/releases)
 
 </div>
 

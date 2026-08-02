@@ -5,7 +5,7 @@ license: MIT
 allowed-tools: Read Write Edit Bash(ls:*) Bash(git:*) Bash(tree:*) Bash(find:*) Grep Glob WebFetch
 metadata:
   author: OJPalenzuela
-  version: "1.1.0"
+  version: "1.1.1"
 ---
 
 # Generate AGENTS.md for this project
@@ -86,11 +86,6 @@ After every code change:
 ```
 [Add doctor if react-doctor exists. Add format check if prettier exists.]
 
-## On every change
-
-- Run `[format cmd]` automatically after editing any file. Do not ask for approval.
-- Run `[lint cmd]` on changed files.
-
 ## Before committing
 
 - Run verification cycle. Fix failures before committing.
@@ -147,27 +142,9 @@ A change is complete when ALL are true:
 3. Documentation updated if behavior changed.
 4. No new warnings or errors.
 
-## Common mistakes
-
-[3 items based on project's actual CI/lint setup]
-
-## Context-efficient workflows
-
-- Large files: grep first, read targeted ranges with offset/limit.
-- Build output: capture to file once, analyze without re-running.
-- Batch edits before building: one build, not build-per-edit.
-
 ## Gotchas
 
 [If platform-specific issues: NTFS, Docker, sandbox, Windows]
-
-## Finish the task
-
-Before marking any task complete:
-- [ ] Update relevant documentation (README if features/setup changed)
-- [ ] Summarize changes in conventional commit format (`feat:`, `fix:`, `refactor:`, `test:`, `chore:`)
-- [ ] Run verification cycle — all checks must pass
-- [ ] Resolve any open questions before declaring done
 
 ## PR instructions
 
@@ -216,12 +193,18 @@ See @AGENTS.md
 
 Only add Claude-specific sections if `.claude/rules/`, `.claude/commands/`, or `.claude/agents/` exist.
 
-## Step 6 — Validate
+## Step 6 — Validate and enforce
+
+**Before declaring the task complete, the agent MUST:**
 
 - Scan all generated files for `{{`, `TODO`, `add here`, `...` → fix any found.
 - Every command in AGENTS.md must exist as a script key in package.json.
 - If AGENTS.md > 300 lines, warn. If > 500, move content to rule files.
-- If existing files were overwritten, note that backups are in `.agents/backups/`.
+- Read package.json `scripts` and detect the CORRECT package manager from lockfiles. Never default to npm.
+- Run `[format cmd]` on changed files if formatter exists.
+- Update README if features, setup steps, or developer ergonomics changed.
+- Summarize changes in conventional commit format.
+- Resolve any open questions before declaring done.
 
 ## Step 7 — Report
 
