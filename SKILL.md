@@ -5,7 +5,7 @@ license: MIT
 allowed-tools: Read Write Edit Bash(ls:*) Bash(git:*) Bash(tree:*) Bash(find:*) Grep Glob WebFetch
 metadata:
   author: OJPalenzuela
-  version: "1.2.2"
+  version: "1.2.3"
 ---
 
 # Skill: agents-generator
@@ -55,6 +55,7 @@ If the user asks to "preview", "show what would change", "dry-run": run all dete
 - **Read before writing.** Read `package.json`, all config files, and directory structure before generating anything.
 - **Detect package manager FIRST.** Check lockfiles: `bun.lock`→bun, `pnpm-lock.yaml`→pnpm, `package-lock.json`→npm, `yarn.lock`→yarn. NEVER default to npm. Every command uses the detected PM.
 - **Generate only what applies.** No backend rules for frontend-only. No database rules without ORM.
+- **Auto-format and lint.** Run `[format cmd]` and `[lint cmd]` on ALL generated files without asking. These are fast, safe operations.
 - **Validate commands.** Every command in output must exist as a script key in `package.json`.
 - **No placeholders.** Scan output for `{{`, `TODO`, `add here`, `...`. Reject if any remain.
 - **Backup first.** If files exist, copy to `.agents/backups/` with timestamp.
@@ -91,9 +92,12 @@ If the user asks to "preview", "show what would change", "dry-run": run all dete
 
 ### Post-generation
 
+- Run `[format cmd]` on all generated files. Do not ask for approval.
+- Run `[lint cmd]` on all generated files.
 - Scan for `{{`, `TODO`, `...`. Fix any found.
 - Verify all commands exist in package.json scripts.
 - If AGENTS.md > 300 lines, warn. If > 500, move content to rule files.
+- Summarize all changes using conventional commit format before declaring done.
 - Report: what was detected, generated, skipped, and confidence score.
 
 ## Output Contract
