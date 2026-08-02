@@ -60,10 +60,6 @@ This template produces the **rich** AGENTS.md. For minimal (agents.md standard),
 
 {{PRE_VALIDATE}}
 
-## On every change
-
-{{ON_EVERY_CHANGE}}
-
 ## Code Style
 
 {{CODE_STYLE}}
@@ -102,13 +98,7 @@ This template produces the **rich** AGENTS.md. For minimal (agents.md standard),
 
 {{GOTCHAS}}
 
-{{COMMON_MISTAKES}}
-
 {{SSH_TROUBLESHOOTING}}
-
-## Context-efficient workflows
-
-{{CONTEXT_WORKFLOWS}}
 
 ## Definition of Done
 
@@ -127,8 +117,6 @@ This template produces the **rich** AGENTS.md. For minimal (agents.md standard),
 {{PR_INSTRUCTIONS}}
 
 {{AGENT_DISCLOSURE}}
-
-{{FINISH_TASK}}
 
 {{RULE_FILE_LINKS}}
 
@@ -196,18 +184,6 @@ Detect from: `.githooks/pre-commit`, `lint-staged` config, `.husky/pre-commit`. 
 
 2-3 numbered, non-negotiable rules. Violating = rejected. Detect from: .env.example → secrets rule; tests/ → test rule; monorepo → contract sync rule.
 
-### `{{ON_EVERY_CHANGE}}`
-
-Commands the agent must run automatically after every code change, without asking for approval. Format as bullet list:
-
-```
-- Run `{{FORMAT_CMD}}` automatically after editing any file. Do not ask for approval.
-- Run `{{LINT_CMD}}` on changed files.
-- Run `{{TYPECHECK_CMD}}` on changed files.
-```
-
-Key principle from enterprise AGENTS.md (OpenAI Codex, Apache Airflow): "Run X automatically after you have finished making code changes; do not ask for approval to run it." Only include fast, safe commands (format, lint, typecheck). Never include deploy, publish, test suites, or destructive commands here.
-
 ### `{{PROHIBITIONS}}`
 
 2-3 "**Never** do X" bullets. Bold the word Never. Detect from project context:
@@ -230,18 +206,6 @@ If CONTRIBUTING.md or PR template exists, add agent attribution rules. Format:
 - All agent-drafted GitHub content (PR comments, reviews, issues) must include attribution footer.
 - Never @mention or tag individuals unless explicitly authorized.
 - Drafted-by: footer required on all agent-generated GitHub messages.
-```
-
-### `{{FINISH_TASK}}`
-Mandatory wrap-up checklist at the end of every AGENTS.md. Universal rules:
-```
-## Finish the task
-
-Before marking any task complete:
-- [ ] Update relevant documentation (README.md if features, setup, or developer ergonomics changed)
-- [ ] Summarize changes in conventional commit format (`feat:`, `fix:`, `refactor:`, `test:`, `chore:`)
-- [ ] Run `{{VERIFICATION_CYCLE}}` — all checks must pass
-- [ ] Resolve any open questions with the developer before declaring done
 ```
 
 ### `{{GLOBAL_CONVENTIONS}}`
@@ -410,15 +374,6 @@ If platform-specific issues exist (Windows, NTFS, Docker, sandbox):
 - Server startup takes 30-60s — don't assume failure immediately
 ```
 
-### `{{COMMON_MISTAKES}}`
-Numbered list of the most frequent build/test failures in this project. 3-5 items max. Detect from CI logs, lint-staged output, or existing docs. Skip if no source of truth. Format:
-```
-## Common mistakes
-1. **Unescaped braces in prose** — wrap `{` and `}` in backticks.
-2. **Forgetting component imports** — must be imported before use.
-3. **Skipping heading levels** — H2 then H4 without H3 fails lint.
-```
-
 ### `{{SSH_TROUBLESHOOTING}}`
 Only if git remote uses SSH (`git@github.com`):
 ```
@@ -426,16 +381,6 @@ Only if git remote uses SSH (`git@github.com`):
 If Git fails with `sign_and_send_pubkey` or `Permission denied`:
 - **Do NOT** switch remotes to HTTPS or retry repeatedly.
 - Ask the user to ensure their SSH agent is available and unlocked.
-```
-
-### `{{CONTEXT_WORKFLOWS}}`
-Guidance for efficient context usage. Based on Next.js enterprise patterns:
-```
-## Context-efficient workflows
-- **Large files**: grep first to find relevant lines, read targeted ranges with offset/limit.
-- **Build output**: capture to file once (`pnpm build 2>&1 | tee /tmp/build.log`), then analyze without re-running.
-- **Batch edits before building**: group related edits, run one build, not build-per-edit.
-- **External API calls**: save response to variable, never re-fetch the same data.
 ```
 
 ### `{{TASK_GUIDES}}`

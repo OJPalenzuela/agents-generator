@@ -5,7 +5,7 @@ license: MIT
 allowed-tools: Read Write Edit Bash(ls:*) Bash(git:*) Bash(tree:*) Bash(find:*) Grep Glob WebFetch
 metadata:
   author: OJPalenzuela
-  version: "1.2.1"
+  version: "1.2.2"
 ---
 
 # Skill: agents-generator
